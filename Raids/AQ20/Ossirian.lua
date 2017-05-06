@@ -186,6 +186,7 @@ function BigWigsOssirian:OnEnable()
 	self:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_CREATURE_DAMAGE")
 	self:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_PARTY_DAMAGE")
 	self:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_SELF_DAMAGE")
+	self:RegisterEvent("PLAYER_REGEN_DISABLED", "CheckForEngage")
 
 	self:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_FRIENDLYPLAYER_DAMAGE")
 	self:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_PARTY_DAMAGE")
@@ -248,6 +249,7 @@ end
 function BigWigsOssirian:BigWigs_RecvSync(sync, debuffKey)
     if not self.started and sync == "BossEngaged" and rest == self.bossSync then
         self:StartFight()
+		if self:IsEventRegistered("PLAYER_REGEN_DISABLED") then self:UnregisterEvent("PLAYER_REGEN_DISABLED") end
         self:TriggerEvent("BigWigs_StopBar", self, L["warstomp_bar"])
         self:TriggerEvent("BigWigs_StartBar", self, L["warstomp_bar"], 30, "Interface\\Icons\\Spell_nature_thunderclap")
     end
