@@ -16,6 +16,10 @@ L:RegisterTranslations("enUS", function() return {
   warstomp_name = "War Stomp timer",
   warstomp_desc = "Show War Stomp timer",
 
+  enveloping_winds_cmd = "enveloping_winds",
+  enveloping_winds_name = "Enveloping Winds",
+  enveloping_winds_desc = "Enveloping Winds timer",
+
 	supreme_cmd = "supreme",
 	supreme_name = "Supreme Alert",
 	supreme_desc = "Warn for Supreme Mode",
@@ -31,9 +35,15 @@ L:RegisterTranslations("enUS", function() return {
 	debuffwarn = "Ossirian now weak to %s!",
 	bartext = "Supreme",
 	expose = "Expose",
+
 	warstomp_bar = "War Stomp",
 	warstomp_trigger1 = "s War Stomp hits",
 	warstomp_trigger2 = "s War Stomp was resisted",
+
+  enveloping_winds_bar = "Enveloping Winds",
+  enveloping_winds_trigger1 = "You are afflicted by Enveloping Winds\.",
+  enveloping_winds_trigger2 = "is afflicted by Enveloping Winds\.",
+  enveloping_winds_trigger3 = "Enveloping Winds was resisted",
 
 	["Shadow"] = true,
 	["Fire"] = true,
@@ -162,7 +172,7 @@ BigWigsOssirian = BigWigs:NewModule(boss)
 BigWigsOssirian.zonename = AceLibrary("Babble-Zone-2.2")["Ruins of Ahn'Qiraj"]
 BigWigsOssirian.enabletrigger = boss
 BigWigsOssirian.bossSync = "Ossirian"
-BigWigsOssirian.toggleoptions = {"supreme", "debuff", "bosskill", "warstomp"}
+BigWigsOssirian.toggleoptions = {"supreme", "debuff", "bosskill", "warstomp", "enveloping_winds"}
 BigWigsOssirian.revision = tonumber(string.sub("$Revision: 17973 $", 12, -3))
 
 ------------------------------
@@ -176,6 +186,11 @@ function BigWigsOssirian:OnEnable()
 	self:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_CREATURE_DAMAGE")
 	self:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_PARTY_DAMAGE")
 	self:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_SELF_DAMAGE")
+
+	self:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_FRIENDLYPLAYER_DAMAGE")
+	self:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_PARTY_DAMAGE")
+	self:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_SELF_DAMAGE")
+
 	self:RegisterEvent("BigWigs_RecvSync")
 	self:TriggerEvent("BigWigs_ThrottleSync", "OssirianWeakness", 10)
 end
@@ -186,19 +201,24 @@ function BigWigsOssirian:check_warstomp(msg)
 	end
 end
 
-function BigWigsOssirian:CHAT_MSG_SPELL_PERIODIC_FRIENDLYPLAYER_DAMAGE(msg)
+function BigWigsOssirian:check_enveloping_winds(msg)
+  if (self.db.profile.enveloping_winds and ((string.find(msg, L["enveloping_winds_trigger1"])) or (string.find(msg, L["enveloping_winds_trigger2"])) or (string.find(msg, L["enveloping_winds_trigger3"])))) then
+		self:TriggerEvent("BigWigs_SendSync", "OssirianEnvelopingWinds")
+	end
+end
 
+function BigWigsOssirian:CHAT_MSG_SPELL_PERIODIC_FRIENDLYPLAYER_DAMAGE(msg)
+  self:check_enveloping_winds(msg)
 end
 
 function BigWigsOssirian:CHAT_MSG_SPELL_PERIODIC_PARTY_DAMAGE(msg)
-
+  self:check_enveloping_winds(msg)
 end
 
 function BigWigsOssirian:CHAT_MSG_SPELL_PERIODIC_SELF_DAMAGE(msg)
-  if (string.find(msg, "Enveloping")) then
-    DEFAULT_CHAT_FRAME:AddMessage("WIND");
-  end
+  self:check_enveloping_winds(msg)
 end
+
 function BigWigsOssirian:CHAT_MSG_SPELL_PERIODIC_CREATURE_BUFFS( msg )
 	if self.db.profile.supreme and arg1 == L["supremetrigger"] then
 		self:TriggerEvent("BigWigs_Message", L["supremewarn"], "Attention")
@@ -224,6 +244,7 @@ function BigWigsOssirian:CHAT_MSG_SPELL_CREATURE_VS_SELF_DAMAGE(msg)
     self:check_warstomp(msg)
 end
 
+
 function BigWigsOssirian:BigWigs_RecvSync(sync, debuffKey)
     if not self.started and sync == "BossEngaged" and rest == self.bossSync then
         self:StartFight()
@@ -235,6 +256,11 @@ function BigWigsOssirian:BigWigs_RecvSync(sync, debuffKey)
     self:TriggerEvent("BigWigs_StopBar", self, L["warstomp_bar"])
 		self:TriggerEvent("BigWigs_StartBar", self, L["warstomp_bar"], 30, "Interface\\Icons\\Spell_nature_thunderclap")
 	end
+
+  if sync == "OssirianEnvelopingWinds" then
+    self:TriggerEvent("BigWigs_StopBar", self, L["enveloping_winds_bar"])
+		self:TriggerEvent("BigWigs_StartBar", self, L["enveloping_winds_bar"], 15, "Interface\\Icons\\Spell_nature_cyclone")
+  end
 
 	if sync ~= "OssirianWeakness" or not debuffKey or not L:HasTranslation(debuffKey) then return end
 
