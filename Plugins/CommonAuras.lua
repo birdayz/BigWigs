@@ -319,6 +319,8 @@ function BigWigsCommonAuras:CHAT_MSG_SPELL_PERIODIC_SELF_BUFFS(msg)
 		self:TriggerEvent("BigWigs_SendSync", "BWCALG")
 	elseif self.db.profile.shieldwall and string.find(msg, BS["Shield Wall"]) then
 		self:TriggerEvent("BigWigs_SendSync", "BWCASW "..tostring(shieldWallDuration))
+	elseif self.db.profile.laststand and string.find(msg, BS["Last Stand"]) then
+		self:TriggerEvent("BigWigs_SendSync", "BWCALS")
 	end
 end
 
