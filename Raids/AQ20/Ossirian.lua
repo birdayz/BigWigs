@@ -27,6 +27,9 @@ L:RegisterTranslations("enUS", function() return {
 	debuffwarn = "Ossirian now weak to %s!",
 	bartext = "Supreme",
 	expose = "Expose",
+	warstomp_bar = "War Stomp",
+	warstomp_trigger1 = "s Warstomp hits",
+	warstomp_trigger2 = "s Warstomp was resisted",
 
 	["Shadow"] = true,
 	["Fire"] = true,
@@ -166,6 +169,7 @@ function BigWigsOssirian:OnEnable()
     self.started = nil
 	self:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_CREATURE_BUFFS")
 	self:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_CREATURE_DAMAGE")
+	self:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_CREATURE_DAMAGE")
 	self:RegisterEvent("BigWigs_RecvSync")
 	self:TriggerEvent("BigWigs_ThrottleSync", "OssirianWeakness", 10)
 end
@@ -183,10 +187,22 @@ function BigWigsOssirian:CHAT_MSG_SPELL_PERIODIC_CREATURE_DAMAGE( msg )
 	end
 end
 
+function BigWigsOssirian:CHAT_MSG_SPELL_CREATURE_VS_CREATURE_DAMAGE(msg)
+	if ((string.find(msg, L["warstomp_trigger1"])) or (string.find(msg, L["warstomp_trigger2"]))) then
+		self:TriggerEvent("BigWigs_SendSync", "OssirianWarstomp")
+	end
+end
+
 function BigWigsOssirian:BigWigs_RecvSync(sync, debuffKey)
     if not self.started and sync == "BossEngaged" and rest == self.bossSync then
         self:StartFight()
     end
+
+	if sync == "OssirianWarstomp" then
+        self:TriggerEvent("BigWigs_StopBar", self, L["warstomp_bar"])
+		self:TriggerEvent("BigWigs_StartBar", self, L["warstomp_bar"], 28, "Interface\\Icons\\Spell_nature_thunderclap")
+	end
+
 	if sync ~= "OssirianWeakness" or not debuffKey or not L:HasTranslation(debuffKey) then return end
 
 	if self.db.profile.debuff then
