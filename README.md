@@ -7,11 +7,9 @@ The adjustments were made by LYQ.<br \>
 
 # Download
 PLEASE NOTE THIS IS STILL A WORK IN PROGRESS <br>
-<b><a href="https://github.com/MOUZU/BigWigs/releases">Download the latest Release here</a></b>
 
 ## How to install
-<b>a)</b> If you choose to download the .rar file all you have to do is extract the archive in your /World of Warcraft/Interface/AddOns/ directory.<br />
-<b>b)</b> If you download the raw code from GitHub (<b>Download ZIP</b>) you'll have to unzip the downloaded archive and rename the folder from 'BigWigs-master' to 'BigWigs' and place it in your /World of Warcraft/Interface/AddOns/ directory.
+If you download the raw code from GitHub (<b>Download ZIP</b>) you'll have to unzip the downloaded archive and rename the folder from 'BigWigs-master' to 'BigWigs' and place it in your /World of Warcraft/Interface/AddOns/ directory.
 
 ## Wiki
 <b><a href="https://github.com/MOUZU/BigWigs/wiki">For more information or help please visit the Wiki</a></b>
