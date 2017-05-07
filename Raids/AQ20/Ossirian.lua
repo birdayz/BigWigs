@@ -256,7 +256,7 @@ function BigWigsOssirian:BigWigs_RecvSync(sync, debuffKey)
 
 	if sync == "OssirianWarstomp" then
     self:TriggerEvent("BigWigs_StopBar", self, L["warstomp_bar"])
-		self:TriggerEvent("BigWigs_StartBar", self, L["warstomp_bar"], 30, "Interface\\Icons\\Spell_nature_thunderclap")
+		self:TriggerEvent("BigWigs_StartBar", self, L["warstomp_bar"], 25, "Interface\\Icons\\Spell_nature_thunderclap")
 	end
 
   if sync == "OssirianEnvelopingWinds" then
