@@ -171,7 +171,7 @@ L:RegisterTranslations("koKR", function() return {
 BigWigsOssirian = BigWigs:NewModule(boss)
 BigWigsOssirian.zonename = AceLibrary("Babble-Zone-2.2")["Ruins of Ahn'Qiraj"]
 BigWigsOssirian.enabletrigger = boss
-BigWigsOssirian.bossSync = "Ossirian"
+BigWigsOssirian.bossSync = "Ossirian the Unscarred"
 BigWigsOssirian.toggleoptions = {"supreme", "debuff", "bosskill", "warstomp", "enveloping_winds"}
 BigWigsOssirian.revision = tonumber(string.sub("$Revision: 17973 $", 12, -3))
 
@@ -247,11 +247,11 @@ end
 
 
 function BigWigsOssirian:BigWigs_RecvSync(sync, debuffKey)
-    if not self.started and sync == "BossEngaged" and rest == self.bossSync then
-        self:StartFight()
-		if self:IsEventRegistered("PLAYER_REGEN_DISABLED") then self:UnregisterEvent("PLAYER_REGEN_DISABLED") end
-        self:TriggerEvent("BigWigs_StopBar", self, L["warstomp_bar"])
-        self:TriggerEvent("BigWigs_StartBar", self, L["warstomp_bar"], 30, "Interface\\Icons\\Spell_nature_thunderclap")
+    if not self.started and sync == "BossEngaged" and debuffKey == self.bossSync then
+      self:StartFight()
+      if self:IsEventRegistered("PLAYER_REGEN_DISABLED") then self:UnregisterEvent("PLAYER_REGEN_DISABLED") end
+      self:TriggerEvent("BigWigs_StartBar", self, L["warstomp_bar"], 25, "Interface\\Icons\\Spell_nature_thunderclap")
+      self:TriggerEvent("BigWigs_StartBar", self, L["enveloping_winds_bar"], 20, "Interface\\Icons\\Spell_nature_cyclone")
     end
 
 	if sync == "OssirianWarstomp" then
