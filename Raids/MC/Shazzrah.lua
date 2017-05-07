@@ -14,7 +14,7 @@ L:RegisterTranslations("enUS", function() return {
 	trigger1 = "casts Gate of Shazzrah",
 	trigger2 = "Shazzrah gains Deaden Magic",
 	trigger3 = "afflicted by Shazzrah",
-	trigger4 = "Shazzrah casts Counterspell",
+	trigger4 = "Shazzrah interrupts",
 	trigger5 = "Shazzrah(.+) Curse was resisted",
 	trigger6 = "Deaden Magic fades from Shazzrah",
 
@@ -152,12 +152,13 @@ function BigWigsShazzrah:BigWigs_RecvSync(sync, rest, nick)
         if sync ~= "ShazzrahEngaged" then self:TriggerEvent("BigWigs_SendSync", "ShazzrahEngaged") end
         
         if self.db.profile.counterspell then
-			self:TriggerEvent("BigWigs_StartBar", self, L["bar4text"], 14, "Interface\\Icons\\Spell_Frost_IceShock")
-			self:ScheduleEvent("csfirsttoX", self.Counterspell, 14, self)
+
+      self:TriggerEvent("BigWigs_StartBar", self, L["bar4text"], 15, "Interface\\Icons\\Spell_Frost_IceShock")
+      self:ScheduleRepeatingEvent("csrepeatable", self.Counterspell, 15, self)
 		end
 		if self.db.profile.blink then
-			self:TriggerEvent("BigWigs_StartBar", self, L["bar1text"], 29, "Interface\\Icons\\Spell_Arcane_Blink")
-			self:ScheduleEvent("blinkfirsttoX", self.Blink, 30.3, self)
+			self:TriggerEvent("BigWigs_StartBar", self, L["bar1text"], 25, "Interface\\Icons\\Spell_Arcane_Blink")
+			self:ScheduleEvent("blinkfirsttoX", self.Blink, 26, self)
 		end
 		if self.db.profile.curse then
 			self:TriggerEvent("BigWigs_StartBar", self, L["bar3text"], 10, "Interface\\Icons\\Spell_Shadow_AntiShadow")
@@ -190,13 +191,15 @@ function BigWigsShazzrah:BigWigs_RecvSync(sync, rest, nick)
 		self:TriggerEvent("BigWigs_Message", L["warn4"], "Attention", "Alarm")
 		self:TriggerEvent("BigWigs_StartBar", self, L["bar3text"], 22, "Interface\\Icons\\Spell_Shadow_AntiShadow")
 	elseif sync == "ShazzrahCounterspellX" and self.db.profile.counterspell then
-		self:TriggerEvent("BigWigs_StartBar", self, L["bar4text"], 16.5, "Interface\\Icons\\Spell_Frost_IceShock")
-	    self:ScheduleRepeatingEvent("csrepeatable", self.Counterspell, 16.5, self)
-	end
+    self:Counterspell()
+     	end
 end
 
 function BigWigsShazzrah:Counterspell()	
-	self:TriggerEvent("BigWigs_SendSync", "ShazzrahCounterspellX");
+  self:TriggerEvent("BigWigs_StopBar", self, L["bar4text"])
+  self:TriggerEvent("BigWigs_StartBar", self, L["bar4text"], 16, "Interface\\Icons\\Spell_Frost_IceShock")
+  self:CancelScheduledEvent("csrepeatable")
+  self:ScheduleRepeatingEvent("csrepeatable", self.Counterspell, 17, self)
 end
 
 function BigWigsShazzrah:Blink()
