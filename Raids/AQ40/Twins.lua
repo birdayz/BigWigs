@@ -119,12 +119,12 @@ function BigWigsTwins:BigWigs_RecvSync(sync, rest, nick)
 		end
 		if self.db.profile.teleport then
 	                --self:ScheduleEvent(function() BigWigsThaddiusArrows:Direction("Noth") end, 25)
-			self:ScheduleEvent("BigWigs_Message", 20, L["portdelaywarn10"], "Urgent")
-			self:ScheduleEvent("BigWigs_Message", 25, L["portdelaywarn"], "Urgent")
-			self:TriggerEvent("BigWigs_StartBar", self, L["bartext"], 30, "Interface\\Icons\\Spell_Arcane_Blink")
+			self:ScheduleEvent("BigWigs_Message", 25, L["portdelaywarn10"], "Urgent")
+			self:ScheduleEvent("BigWigs_Message", 30, L["portdelaywarn"], "Urgent")
+			self:TriggerEvent("BigWigs_StartBar", self, L["bartext"], 35, "Interface\\Icons\\Spell_Arcane_Blink")
 		end
 		if self.db.profile.enrage then
-	                self:ScheduleRepeatingEvent("bwtwinstelebar", self.Telebar, 30.1, self)
+	        self:ScheduleRepeatingEvent("bwtwinstelebar", self.Telebar, 35.1, self)
 			self:TriggerEvent("BigWigs_Message", L["startwarn"], "Important")
 			self:TriggerEvent("BigWigs_StartBar", self, L["enragebartext"], 900, "Interface\\Icons\\Spell_Shadow_UnholyFrenzy")
 			self:ScheduleEvent("bwtwinswarn1", "BigWigs_Message", 300, L["warn1"], "Attention")
@@ -137,18 +137,18 @@ function BigWigsTwins:BigWigs_RecvSync(sync, rest, nick)
 		end
 	elseif sync == "TwinsTeleport" and self.db.profile.teleport then
 		self:TriggerEvent("BigWigs_Message", L["portwarn"], "Attention")
-		self:ScheduleEvent("BigWigs_Message", 20, L["portdelaywarn10"], "Urgent")
-		self:ScheduleEvent("BigWigs_Message", 25, L["portdelaywarn"], "Urgent")
-		self:TriggerEvent("BigWigs_StartBar", self, L["bartext"], 30, "Interface\\Icons\\Spell_Arcane_Blink")
+		self:ScheduleEvent("BigWigs_Message", 25, L["portdelaywarn10"], "Urgent")
+		self:ScheduleEvent("BigWigs_Message", 30, L["portdelaywarn"], "Urgent")
+		self:TriggerEvent("BigWigs_StartBar", self, L["bartext"], 35, "Interface\\Icons\\Spell_Arcane_Blink")
 	end
 end
 
 function BigWigsTwins:Telebar()
             --klhtm:ResetRaidThreat()
 	        --self:ScheduleEvent(function() BigWigsThaddiusArrows:Direction("Noth") end, 25)
-		self:ScheduleEvent("BigWigs_Message", 20, L["portdelaywarn10"], "Urgent")
-		self:ScheduleEvent("BigWigs_Message", 25, L["portdelaywarn"], "Urgent")
-		self:TriggerEvent("BigWigs_StartBar", self, L["bartext"], 30.1, "Interface\\Icons\\Spell_Arcane_Blink")
+		self:ScheduleEvent("BigWigs_Message", 25, L["portdelaywarn10"], "Urgent")
+		self:ScheduleEvent("BigWigs_Message", 30, L["portdelaywarn"], "Urgent")
+		self:TriggerEvent("BigWigs_StartBar", self, L["bartext"], 35.1, "Interface\\Icons\\Spell_Arcane_Blink")
 end	
 
 function BigWigsTwins:CHAT_MSG_SPELL_CREATURE_VS_CREATURE_DAMAGE(msg)
