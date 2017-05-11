@@ -304,7 +304,7 @@ function BigWigsRazorgore:Events(msg)
 		end
 	end
 	if self.db.profile.conflagration and string.find(msg, L["conflagration_trigger"]) then
-		self:TriggerEvent("BigWigs_StartBar", self, L["conflagration_bar"], 10, "Interface\\Icons\\Spell_Fire_Incinerate", true, "red")
+		self:TriggerEvent("BigWigs_StartBar", self, L["conflagration_bar"], 15, "Interface\\Icons\\Spell_Fire_Incinerate", true, "red")
 	end
 	if deathother then
 		if self.db.profile.mc then
