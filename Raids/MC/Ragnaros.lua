@@ -172,7 +172,7 @@ function BigWigsRagnaros:CHAT_MSG_MONSTER_YELL(msg)
 	elseif string.find(msg, L["engage_trigger"]) then
 		self:Emerge()
     elseif string.find(msg,L["engage_soon_trigger"]) then
-        self:TriggerEvent("BigWigs_StartBar", self, "Combat", 64.5, "Interface\\Icons\\Inv_Hammer_Unique_Sulfuras")
+        self:TriggerEvent("BigWigs_StartBar", self, "Combat", 76, "Interface\\Icons\\Inv_Hammer_Unique_Sulfuras")
     elseif string.find(msg,L["hammer_trigger"]) then
         self:TriggerEvent("BigWigs_StartBar", self, "Hammer of Ragnaros", 25, "Interface\\Icons\\Spell_Fire_Incinerate")
 	end
