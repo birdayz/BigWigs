@@ -155,18 +155,18 @@ function BigWigsRagnaros:BigWigs_RecvSync(sync, rest, nick)
             self:TriggerEvent("BigWigs_SetCounterBar", self, "Sons dead", (8 - self.sonsdead))
         end
 	elseif sync == "RagnarosKnockback" then
-		self:ScheduleEvent("bwragnarosaekbwarn", "BigWigs_Message", 24, L["knockback_soon_message"], "Urgent", true, "Alarm")
-		self:TriggerEvent("BigWigs_StartBar", self, L["knockback_bar"], 29, "Interface\\Icons\\Spell_Fire_SoulBurn")
-        self:ScheduleEvent("BigWigs_ShowIcon", 24, "Interface\\Icons\\Ability_Rogue_Sprint", 5)
+		self:ScheduleEvent("bwragnarosaekbwarn", "BigWigs_Message", 20, L["knockback_soon_message"], "Urgent", true, "Alarm")
+		self:TriggerEvent("BigWigs_StartBar", self, L["knockback_bar"], 25, "Interface\\Icons\\Spell_Fire_SoulBurn")
+        self:ScheduleEvent("BigWigs_ShowIcon", 20, "Interface\\Icons\\Ability_Rogue_Sprint", 5)
 	end
 end
 
 function BigWigsRagnaros:CHAT_MSG_MONSTER_YELL(msg)
 	if string.find(msg, L["knockback_trigger"]) and self.db.profile.aoeknock then
 		self:TriggerEvent("BigWigs_Message", L["knockback_message"], "Important")
-		self:ScheduleEvent("bwragnarosaekbwarn", "BigWigs_Message", 23, L["knockback_soon_message"], "Urgent", true, "Alarm")
-        self:ScheduleEvent("BigWigs_ShowIcon", 23, "Interface\\Icons\\Ability_Rogue_Sprint", 5)
-		self:TriggerEvent("BigWigs_StartBar", self, L["knockback_bar"], 28, "Interface\\Icons\\Spell_Fire_SoulBurn")
+		self:ScheduleEvent("bwragnarosaekbwarn", "BigWigs_Message", 20, L["knockback_soon_message"], "Urgent", true, "Alarm")
+        self:ScheduleEvent("BigWigs_ShowIcon", 20, "Interface\\Icons\\Ability_Rogue_Sprint", 5)
+		self:TriggerEvent("BigWigs_StartBar", self, L["knockback_bar"], 25, "Interface\\Icons\\Spell_Fire_SoulBurn")
 	elseif string.find(msg, L["submerge_trigger"]) then
 		self:Submerge()
 	elseif string.find(msg, L["engage_trigger"]) then
