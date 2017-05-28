@@ -34,7 +34,7 @@ L:RegisterTranslations("enUS", function() return {
 	portwarn = "Teleport!",
 	portdelaywarn = "Teleport in 5 seconds!",
 	portdelaywarn10 = "Teleport in 10 seconds!",
-	bartext = "Teleport",
+	bartext = "Possible Teleport",
 	explodebugtrigger = "gains Explode Bug",
 	explodebugwarn = "Bug exploding nearby!",
 	enragetrigger = "becomes enraged.",
@@ -42,9 +42,11 @@ L:RegisterTranslations("enUS", function() return {
 	enragewarn = "Twins are enraged",
 	healtrigger1 = "'s Heal Brother heals",
 	healtrigger2 = " Heal Brother heals",
+	mutate_trigger1 = "gains Mutate Bug",
 	healwarn = "Casting Heal!",
 	startwarn = "Twin Emperors engaged! Enrage in 15 minutes!",
 	enragebartext = "Enrage",
+	mutatebartext = "Possible Mutate Bug",
 	warn1 = "Enrage in 10 minutes",
 	warn2 = "Enrage in 5 minutes",
 	warn3 = "Enrage in 3 minutes",
@@ -76,7 +78,7 @@ function BigWigsTwins:OnEnable()
 	self:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_SELF_DAMAGE")
 	--self:RegisterEvent("CHAT_MSG_SPELL_AURA_GONE_SELF")
 	self:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_CREATURE_BUFFS")
-	self:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_CREATURE_DAMAGE")
+	self:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_CREATURE_BUFFS")
 	self:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_CREATURE_BUFF")
 	self:RegisterEvent("PLAYER_REGEN_DISABLED", "CheckForEngage")
 	self:RegisterEvent("BigWigs_RecvSync")
@@ -97,6 +99,7 @@ end
 function BigWigsTwins:CHAT_MSG_SPELL_PERIODIC_SELF_DAMAGE(msg)
 	if string.find(msg, L["trigger"]) then
 		self:TriggerEvent("BigWigs_Message", L["firewarn"], "Personal", true, "Alarm")
+		self:TriggerEvent("BigWigs_ShowIcon", "Interface\\Icons\\Spell_frost_icestorm", 3)
 	        --BigWigsThaddiusArrows:Direction("Blizzard")
 	end
 end
@@ -118,7 +121,7 @@ function BigWigsTwins:BigWigs_RecvSync(sync, rest, nick)
 			self:UnregisterEvent("PLAYER_REGEN_DISABLED")
 		end
 		if self.db.profile.teleport then
-			self.Telebar()
+			self.Telebar(self)
 		end
 		if self.db.profile.enrage then
 			self:TriggerEvent("BigWigs_Message", L["startwarn"], "Important")
@@ -132,26 +135,29 @@ function BigWigsTwins:BigWigs_RecvSync(sync, rest, nick)
 			self:ScheduleEvent("bwtwinswarn7", "BigWigs_Message", 890, L["warn7"], "Important")
 		end
 	elseif sync == "TwinsTeleport" and self.db.profile.teleport then
-		self.Telebar()
+		self.Telebar(self)
 	end
 end
 
 function BigWigsTwins:Telebar()
-        klhtm:ResetRaidThreat()
+		self:TriggerEvent("BigWigs_StopBar", self, L["bartext"])
 		self:ScheduleEvent("BigWigs_Message", 20, L["portdelaywarn10"], "Urgent")
 		self:ScheduleEvent("BigWigs_Message", 25, L["portdelaywarn"], "Urgent")
-		self:TriggerEvent("BigWigs_StartBar", self, L["bartext"], 30.1, "Interface\\Icons\\Spell_Arcane_Blink")
+		self:TriggerEvent("BigWigs_StartBar", self, L["bartext"], 30, "Interface\\Icons\\Spell_Arcane_Blink")
+		self:SetCandyBarFade("BigWigsBar "..L["bartext"], 10)
 end	
 
-function BigWigsTwins:CHAT_MSG_SPELL_CREATURE_VS_CREATURE_DAMAGE(msg)
-	if (string.find(msg, L["porttrigger"])) then
-		self:TriggerEvent("BigWigs_SendSync", "TwinsTeleport")
-	end
-end
 
 function BigWigsTwins:CHAT_MSG_SPELL_PERIODIC_CREATURE_BUFFS(msg)
 	if (string.find(msg, L["explodebugtrigger"]) and self.db.profile.bug) then
 		self:TriggerEvent("BigWigs_Message", L["explodebugwarn"], "Personal", true)
+	elseif (string.find(msg, L["porttrigger"])) then
+		self:TriggerEvent("BigWigs_SendSync", "TwinsTeleport")
+	elseif (string.find(msg, L["mutate_trigger1"])) then
+		self:TriggerEvent("BigWigs_Message", "New Bug Mutated!", "Important")
+		self:TriggerEvent("BigWigs_StopBar", self, L["mutatebartext"])
+		self:TriggerEvent("BigWigs_StartBar", self, L["mutatebartext"], 10, "Interface\\Icons\\Spell_Arcane_Blink")
+		self:SetCandyBarFade("BigWigsBar "..L["mutatebartext"], 5)
 	end
 end
 
