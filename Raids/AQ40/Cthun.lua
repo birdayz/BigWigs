@@ -14,9 +14,10 @@ local timeP1TentacleStart = 45 -- delay for first tentacles from engage onwards
 local timeP1GreenBeam = 45+3         -- 45s + 3sec dark glare cast
 local timeP1GlareDuration = 38+1	 -- 38s+1s cd
 
-local timeP2Offset = 11        -- delay for all timers to restart after the Eye dies
+local timeP2Offset = 4        -- delay for all timers to restart after the Eye dies
 local timeP2Tentacle = 30      -- tentacle timers for phase 2
 local timeP2ETentacle = 60     -- Eye tentacle timers for phase 2
+local timeP2CTentacle = 60     -- Eye tentacle timers for phase 2
 local timeReschedule = 50      -- delay from the moment of weakening for timers to restart
 local timeTarget = 10          -- delay for target change checking on Eye of C'Thun
 local timeWeakened = 45        -- duration of a weaken
@@ -91,6 +92,7 @@ L:RegisterTranslations("enUS", function() return {
   barGiantC	= "Giant Claw!",
   barGreenBeam	= "Eye tentacle spawn!",
   gedownwarn	= "Giant Eye down!",
+  eye_cast_bar_on = "Eye Beam: %s",
 
   barNextGlare = "Next Dark Glare",
   barGlare = "Dark Glare",
@@ -132,21 +134,21 @@ function BigWigsCThun:OnEnable()
   --self:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_CREATURE_DAMAGE")
   --self:RegisterEvent("CHAT_MSG_SPELL_AURA_GONE_SELF")
   --self:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_SELF_BUFFS")
-  self:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_CREATURE_BUFF")
+  self:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_CREATURE_DAMAGE")
   self:RegisterEvent("CHAT_MSG_COMBAT_HOSTILE_DEATH")
   self:RegisterEvent("CHAT_MSG_MONSTER_EMOTE", "Emote")		-- weakened triggering
   self:RegisterEvent("CHAT_MSG_RAID_BOSS_EMOTE", "Emote")		-- weakened triggering
   self:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_PARTY_DAMAGE") -- engage of Eye of C'Thun
-  self:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_CREATURE_DAMAGE", "CHAT_MSG_SPELL_CREATURE_VS_PARTY_DAMAGE") -- engage of Eye of C'Thun
+  --TODOself:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_CREATURE_DAMAGE", "CHAT_MSG_SPELL_CREATURE_VS_PARTY_DAMAGE") -- engage of Eye of C'Thun
   -- Not sure about this, since we get out of combat between the phases.
   self:RegisterEvent("PLAYER_REGEN_ENABLED", "CheckForWipe")
 
   self:RegisterEvent("BigWigs_RecvSync")
 
   self:TriggerEvent("BigWigs_ThrottleSync", "CThunStart", 20)
-  self:TriggerEvent("BigWigs_ThrottleSync", "CThunP2Start", 20)
-  self:TriggerEvent("BigWigs_ThrottleSync", "CThunWeakened", 20)
-  self:TriggerEvent("BigWigs_ThrottleSync", "CThunGEdown", 3)
+  self:TriggerEvent("BigWigs_ThrottleSync", "CThunP2StartDS", 20)
+  self:TriggerEvent("BigWigs_ThrottleSync", "CThunWeakenedDS", 20)
+  self:TriggerEvent("BigWigs_ThrottleSync", "CThunGEdownDS", 3)
 end
 
 ----------------------
@@ -154,30 +156,37 @@ end
 ----------------------
 
 function BigWigsCThun:Emote( msg )
-  if string.find(msg, L["weakenedtrigger"]) then self:TriggerEvent("BigWigs_SendSync", "CThunWeakened") end
+  if string.find(msg, L["weakenedtrigger"]) then self:TriggerEvent("BigWigs_SendSync", "CThunWeakenedDS") end
 end
 
 function BigWigsCThun:CHAT_MSG_SPELL_CREATURE_VS_PARTY_DAMAGE( arg1 )
-  if not cthunstarted and arg1 and string.find(arg1, L["eyebeam"]) then
-    self:TriggerEvent("BigWigs_SendSync", "CThunStart")
-  end
+
 end
 
 function BigWigsCThun:CHAT_MSG_COMBAT_HOSTILE_DEATH(msg)
-  if (msg == string.format(UNITDIESOTHER, eyeofcthun)) then
-    self:TriggerEvent("BigWigs_SendSync", "CThunP2Start")
+  if ((msg == string.format(UNITDIESOTHER, cthun)) or string.find(msg, "You have slain Eye of C")) then
+   self:TriggerEvent("BigWigs_SendSync", "CThunP2StartDS")
   elseif (msg == string.format(UNITDIESOTHER, gianteye)) then
-    self:TriggerEvent("BigWigs_SendSync", "CThunGEdown")
+    self:TriggerEvent("BigWigs_SendSync", "CThunGEdownDS")
   elseif (msg == string.format(UNITDIESOTHER, cthun)) then
     if self.db.profile.bosskill then self:TriggerEvent("BigWigs_Message", string.format(AceLibrary("AceLocale-2.2"):new("BigWigs")["%s has been defeated"], cthun), "Bosskill", nil, "Victory") end
     self.core:ToggleModuleActive(self, false)
   end
 end
 
-function BigWigsCThun:CHAT_MSG_SPELL_CREATURE_VS_CREATURE_BUFF(msg)
-  if string.find(arg1, L["eyebeam_cast"]) then
-    self:TriggerEvent("BigWigs_StopBar", self, L["next_eyebeam"])
-    self:TriggerEvent("BigWigs_StartBar", self, L["next_eyebeam"], 5, "Interface\\Icons\\Spell_Nature_CallStorm")
+-- CHAT_MSG_SPELL_CREATURE_VS_CREATURE_BUFF = Birth
+function BigWigsCThun:CHAT_MSG_SPELL_CREATURE_VS_CREATURE_DAMAGE(msg)
+  if not cthunstarted and arg1 and string.find(arg1, L["eyebeam"]) then
+    self:TriggerEvent("BigWigs_SendSync", "CThunStart")
+  end
+  if string.find(msg, "begins to cast Eye") then
+  --self:CheckTarget()
+	--if target ~= nil then
+	--	self:TriggerEvent("BigWigs_StartBar", self, string.format(L["eye_cast_bar_on"], target), 2, "Interface\\Icons\\Spell_Nature_CallStorm")
+	--else
+		self:TriggerEvent("BigWigs_StartBar", self, string.format(L["eye_cast_bar_on"], "<unknown>"), 2, "Interface\\Icons\\Spell_Nature_CallStorm")
+	--end
+
   end
 end
 
@@ -185,11 +194,11 @@ function BigWigsCThun:BigWigs_RecvSync(sync, rest, nick)
   if not self.started and ((sync == "BossEngaged" and rest == self.bossSync) or (sync == "CThunStart")) then
     self:StartFight()
     self:CThunStart()
-  elseif sync == "CThunP2Start" then
-    self:CThunP2Start()
-  elseif sync == "CThunWeakened" then
-    self:CThunWeakened()
-  elseif sync == "CThunGEdown" then
+  elseif sync == "CThunP2StartDS" then
+    self:CThunP2StartDS()
+  elseif sync == "CThunWeakenedDS" then
+    self:CThunWeakenedDS()
+  elseif sync == "CThunGEdownDS" then
     self:TriggerEvent("BigWigs_Message", L["gedownwarn"], "Positive")
   end
 end
@@ -220,10 +229,16 @@ function BigWigsCThun:CThunStart()
   end
 end
 
-function BigWigsCThun:CThunP2Start()
+function BigWigsCThun:CThunP2StartDS()
   if not phase2started then
     phase2started = true
     tentacletime = timeP2Tentacle
+	
+	
+	self:CancelScheduledEvent("bwstartgreenbeamphase")
+	self:CancelScheduledEvent("bwstartdarkglarephase")
+	self:CancelScheduledEvent("bwshowdarkglarewarning")
+	-- TODO avoid msgs
 
     self:TriggerEvent("BigWigs_Message", L["phase2starting"], "Bosskill")
 
@@ -250,26 +265,32 @@ function BigWigsCThun:CThunP2Start()
     self:CancelScheduledEvent("bwctga")
 
     if self.db.profile.tentacle then
-      self:ScheduleEvent("bwcthuntentacle", "BigWigs_Message", timeP2Tentacle + timeP2Offset - 5, self.db.profile.rape and L["tentacle"] or L["norape"], "Urgent", true, "Alert")
-      self:TriggerEvent("BigWigs_StartBar", self, self.db.profile.rape and L["barTentacle"] or L["barNoRape"], timeP2Tentacle + timeP2Offset, "Interface\\Icons\\Spell_Nature_CallStorm")
-      self:ScheduleEvent("BigWigs_StartBar", 41, self, L["barTentacle"], 30, "Interface\\Icons\\Spell_Nature_CallStorm")
-      self:ScheduleEvent("bwcthuntentacle2", "BigWigs_Message", 66, self.db.profile.rape and L["tentacle"] or L["norape"], "Urgent", true, "Alert")
+		--self:TriggerEvent("BigWigs_StartBar", self, "Eye Tentacles", 38+timeP2Offset, "Interface\\Icons\\Spell_Nature_CallStorm")
+		--self:ScheduleEvent("BigWigs_ShowIcon", timeP1GreenBeam-5, "Interface\\Icons\\Ability_Rogue_Sprint", 5)
+		--self:ScheduleEvent("BigWigs_Message", timeP1GreenBeam-5, L["darkglare_soon_message"], "Urgent", true, "Alarm")
+      --self:ScheduleEvent("bwcthuntentacle", "BigWigs_Message", timeP2Tentacle + timeP2Offset - 5, self.db.profile.rape and L["tentacle"] or L["norape"], "Urgent", true, "Alert")
+      --self:TriggerEvent("BigWigs_StartBar", self, self.db.profile.rape and L["barTentacle"] or L["barNoRape"], timeP2Tentacle + timeP2Offset, "Interface\\Icons\\Spell_Nature_CallStorm")
+      --self:ScheduleEvent("BigWigs_StartBar", 41, self, L["barTentacle"], 30, "Interface\\Icons\\Spell_Nature_CallStorm")
+      --self:ScheduleEvent("bwcthuntentacle2", "BigWigs_Message", 66, self.db.profile.rape and L["tentacle"] or L["norape"], "Urgent", true, "Alert")
     end
 
     if self.db.profile.giant then
-      self:TriggerEvent("BigWigs_StartBar", self, L["barGiant"], 56, "Interface\\Icons\\Ability_EyeOfTheOwl")
-      self:TriggerEvent("BigWigs_StartBar", self, L["barGiantC"], 26, "Interface\\Icons\\Spell_Nature_Earthquake")
+	  self:TriggerEvent("BigWigs_StartBar", self, L["barGiant"], 38+timeP2Offset, "Interface\\Icons\\Ability_EyeOfTheOwl")
+      self:TriggerEvent("BigWigs_StartBar", self, L["barTentacle"], 38+timeP2Offset, "Interface\\Icons\\Spell_Nature_CallStorm")
+      self:TriggerEvent("BigWigs_StartBar", self, L["barGiantC"], 8+timeP2Offset, "Interface\\Icons\\Spell_Nature_Earthquake")
     end
+	
+	
 
-    self:ScheduleEvent("bwcthunstarttentacles", self.StartTentacleRape, timeP2ETentacle + timeP2Offset, self )
-    self:ScheduleEvent("bwcthunstartgiant", self.StartGiantRape, 56, self )
-    self:ScheduleEvent("bwcthunstartgiantc", self.StartGiantCRape, 26, self )
+    self:ScheduleEvent("bwcthunstarttentacles", self.StartTentacleRape, 38 + timeP2Offset, self )
+    self:ScheduleEvent("bwcthunstartgiant", self.StartGiantRape, 38+timeP2Offset, self )
+    self:ScheduleEvent("bwcthunstartgiantc", self.StartGiantCRape, 8+timeP2Offset, self )
     self:ScheduleRepeatingEvent("bwcthuntargetp2", self.CheckTargetP2, timeTarget, self )
   end
 
 end
 
-function BigWigsCThun:CThunWeakened()
+function BigWigsCThun:CThunWeakenedDS()
   if self.db.profile.weakened then
     self:TriggerEvent("BigWigs_Message", L["weakened"], "Positive" )
     self:TriggerEvent("BigWigs_StartBar", self, L["barWeakened"], timeWeakened, "Interface\\Icons\\INV_ValentinesCandy")
@@ -301,8 +322,8 @@ function BigWigsCThun:CThunWeakened()
   self:ScheduleEvent("BigWigs_StartBar", 50, self, L["barTentacle"], 30, "Interface\\Icons\\Spell_Nature_CallStorm")
   self:ScheduleEvent("BigWigs_StartBar", 55, self, L["barGiantC"], 60, "Interface\\Icons\\Spell_Nature_Earthquake")
   self:ScheduleEvent("bwcthunstarttentacles", self.StartTentacleRape, timeReschedule, self )
-  self:ScheduleEvent("bwcthunstartgiant", self.StartGiantCRape, timeReschedule + 5, self )
-  self:ScheduleEvent("bwcthunstartgiantc", self.StartGiantRape, timeReschedule + 35, self )
+  --self:ScheduleEvent("bwcthunstartgiant", self.StartGiantCRape, timeReschedule + 5, self )
+  --self:ScheduleEvent("bwcthunstartgiantc", self.StartGiantRape, timeReschedule + 35, self )
 end
 
 -----------------------
@@ -329,6 +350,8 @@ function BigWigsCThun:CheckTarget()
   local i
   local newtarget = nil
   if( UnitName("playertarget") == eyeofcthun ) then
+  --DEFAULT_CHAT_FRAME:AddMessage("BLA")
+  --DEFAULT_CHAT_FRAME:AddMessage(UnitName("playertargettarget"))
     newtarget = UnitName("playertargettarget")
   else
     for i = 1, GetNumRaidMembers(), 1 do
@@ -392,7 +415,7 @@ end
 function BigWigsCThun:GCTentacleRape()
   if phase2started then
     if self.db.profile.giant then
-      self:TriggerEvent("BigWigs_StartBar", self, L["barGiantC"], timeP2ETentacle, "Interface\\Icons\\Spell_Nature_Earthquake")
+      self:TriggerEvent("BigWigs_StartBar", self, L["barGiantC"], timeP2CTentacle, "Interface\\Icons\\Spell_Nature_Earthquake")
 
     end
   end
@@ -410,9 +433,13 @@ function BigWigsCThun:StartDarkGlarePhase()
   self:ScheduleEvent("bwstartgreenbeamphase", self.StartGreenBeamPhase, timeP1GlareDuration, self )
 end
 
+function BigWigsCThun:WarnDarkGlare()
+  self:TriggerEvent("BigWigs_ShowIcon", "Interface\\Icons\\Ability_Rogue_Sprint", 5)
+  self:TriggerEvent("BigWigs_Message", L["darkglare_soon_message"], "Urgent", true, "Alarm")
+end
+
 function BigWigsCThun:StartGreenBeamPhase()
   self:TriggerEvent("BigWigs_StartBar", self, L["barNextGlare"], timeP1GreenBeam, "Interface\\Icons\\Spell_Shadow_ShadowBolt")
   self:ScheduleEvent("bwstartdarkglarephase", self.StartDarkGlarePhase, timeP1GreenBeam, self )
-  self:ScheduleEvent("BigWigs_ShowIcon", timeP1GreenBeam-5, "Interface\\Icons\\Ability_Rogue_Sprint", 5)
-  self:ScheduleEvent("BigWigs_Message", timeP1GreenBeam-5, L["darkglare_soon_message"], "Urgent", true, "Alarm")
+  self:ScheduleEvent("bwshowdarkglarewarning", self.WarnDarkGlare, timeP1GreenBeam-5, self )
 end
