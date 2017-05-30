@@ -164,7 +164,7 @@ function BigWigsCThun:CHAT_MSG_SPELL_CREATURE_VS_PARTY_DAMAGE( arg1 )
 end
 
 function BigWigsCThun:CHAT_MSG_COMBAT_HOSTILE_DEATH(msg)
-  if ((msg == string.format(UNITDIESOTHER, cthun)) or string.find(msg, "You have slain Eye of C")) then
+  if ((msg == string.format(UNITDIESOTHER, eyeofcthun)) or string.find(msg, "You have slain Eye of C")) then
    self:TriggerEvent("BigWigs_SendSync", "CThunP2StartDS")
   elseif (msg == string.format(UNITDIESOTHER, gianteye)) then
     self:TriggerEvent("BigWigs_SendSync", "CThunGEdownDS")
