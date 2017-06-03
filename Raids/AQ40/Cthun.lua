@@ -84,12 +84,11 @@ L:RegisterTranslations("enUS", function() return {
 
   glare		= "Dark glare!",
 
-  barTentacle	= "Tentacle rape party!",
-  barNoRape	= "Tentacle party!",
+  bar_tentacle_rape	= "Tentacle rape party!",
   barWeakened	= "C'Thun is weakened!",
   barGlare	= "Dark glare!",
-  barGiant	= "Giant Eye!",
-  barGiantC	= "Giant Claw!",
+  bar_giant_eye	= "Giant Eye!",
+  bar_giant_claw	= "Giant Claw!",
   barGreenBeam	= "Eye tentacle spawn!",
   gedownwarn	= "Giant Eye down!",
   eye_cast_bar_on = "Eye Beam: %s",
@@ -141,7 +140,7 @@ function BigWigsCThun:OnEnable()
   self:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_PARTY_DAMAGE") -- engage of Eye of C'Thun
   --TODOself:RegisterEvent("CHAT_MSG_SPELL_CREATURE_VS_CREATURE_DAMAGE", "CHAT_MSG_SPELL_CREATURE_VS_PARTY_DAMAGE") -- engage of Eye of C'Thun
   -- Not sure about this, since we get out of combat between the phases.
-  self:RegisterEvent("PLAYER_REGEN_ENABLED", "CheckForWipe")
+  -- self:RegisterEvent("PLAYER_REGEN_ENABLED", "CheckForWipe")
 
   self:RegisterEvent("BigWigs_RecvSync")
 
@@ -165,7 +164,7 @@ end
 
 function BigWigsCThun:CHAT_MSG_COMBAT_HOSTILE_DEATH(msg)
   if ((msg == string.format(UNITDIESOTHER, eyeofcthun)) or string.find(msg, "You have slain Eye of C")) then
-   self:TriggerEvent("BigWigs_SendSync", "CThunP2StartDS")
+    self:TriggerEvent("BigWigs_SendSync", "CThunP2StartDS")
   elseif (msg == string.format(UNITDIESOTHER, gianteye)) then
     self:TriggerEvent("BigWigs_SendSync", "CThunGEdownDS")
   elseif (msg == string.format(UNITDIESOTHER, cthun)) then
@@ -180,12 +179,12 @@ function BigWigsCThun:CHAT_MSG_SPELL_CREATURE_VS_CREATURE_DAMAGE(msg)
     self:TriggerEvent("BigWigs_SendSync", "CThunStart")
   end
   if string.find(msg, "begins to cast Eye") then
-  --self:CheckTarget()
-	--if target ~= nil then
-	--	self:TriggerEvent("BigWigs_StartBar", self, string.format(L["eye_cast_bar_on"], target), 2, "Interface\\Icons\\Spell_Nature_CallStorm")
-	--else
-		self:TriggerEvent("BigWigs_StartBar", self, string.format(L["eye_cast_bar_on"], "<unknown>"), 2, "Interface\\Icons\\Spell_Nature_CallStorm")
-	--end
+    --self:CheckTarget()
+    --if target ~= nil then
+    --	self:TriggerEvent("BigWigs_StartBar", self, string.format(L["eye_cast_bar_on"], target), 2, "Interface\\Icons\\Spell_Nature_CallStorm")
+    --else
+    self:TriggerEvent("BigWigs_StartBar", self, string.format(L["eye_cast_bar_on"], "<unknown>"), 2, "Interface\\Icons\\Spell_Nature_CallStorm")
+    --end
 
   end
 end
@@ -214,7 +213,7 @@ function BigWigsCThun:CThunStart()
     self:TriggerEvent("BigWigs_Message", L["startwarn"], "Attention")
 
     if self.db.profile.tentacle then
-      self:TriggerEvent("BigWigs_StartBar", self, self.db.profile.rape and L["barTentacle"] or L["barNoRape"], timeP1TentacleStart, "Interface\\Icons\\Spell_Nature_CallStorm")
+      self:TriggerEvent("BigWigs_StartBar", self, self.db.profile.rape and L["bar_tentacle_rape"], timeP1TentacleStart, "Interface\\Icons\\Spell_Nature_CallStorm")
       self:ScheduleEvent("bwcthuntentacle", "BigWigs_Message", timeP1TentacleStart - 5, self.db.profile.rape and L["tentacle"] or L["norape"], "Urgent", true, "Alert")
     end
 
@@ -224,7 +223,7 @@ function BigWigsCThun:CThunStart()
 
     firstWarning = true
 
-    self:ScheduleEvent("bwcthuntentaclesstart", self.StartTentacleRape, timeP1TentacleStart, self )
+    self:ScheduleEvent("bw_repeating_tentacle_rape_partystart", self.StartTentacleRape, timeP1TentacleStart, self )
     self:ScheduleRepeatingEvent("bwcthuntarget", self.CheckTarget, timeTarget, self )
   end
 end
@@ -233,30 +232,28 @@ function BigWigsCThun:CThunP2StartDS()
   if not phase2started then
     phase2started = true
     tentacletime = timeP2Tentacle
-	
-	
-	self:CancelScheduledEvent("bwstartgreenbeamphase")
-	self:CancelScheduledEvent("bwstartdarkglarephase")
-	self:CancelScheduledEvent("bwshowdarkglarewarning")
-	-- TODO avoid msgs
+
+    self:StopTentacleRape() -- stop p1 tentacle rape
+    self:CancelScheduledEvent("bw_repeating_tentacle_rape_partystart")
+    self:CancelScheduledEvent("bwstartgreenbeamphase")
+    self:CancelScheduledEvent("bwstartdarkglarephase")
+    self:CancelScheduledEvent("bwshowdarkglarewarning")
+    -- TODO avoid msgs
 
     self:TriggerEvent("BigWigs_Message", L["phase2starting"], "Bosskill")
 
     self:TriggerEvent("BigWigs_StopBar", self, L["barGlare"] )
     self:TriggerEvent("BigWigs_StopBar", self, L["barNextGlare"] )
-    self:TriggerEvent("BigWigs_StopBar", self, L["barTentacle"] )
-    self:TriggerEvent("BigWigs_StopBar", self, L["barNoRape"] )
+    self:TriggerEvent("BigWigs_StopBar", self, L["bar_tentacle_rape"] )
     self:TriggerEvent("BigWigs_StopBar", self, L["barGreenBeam"] )
 
     self:CancelScheduledEvent("bwcthuntentacle")
-
     self:CancelScheduledEvent("bwcthunglarecooldown")
     self:CancelScheduledEvent("bwcthunglare")
-
     self:CancelScheduledEvent("bwcthunpositions2")
 
     -- cancel the repeaters
-    self:CancelScheduledEvent("bwcthuntentacles")
+    self:CancelScheduledEvent("bw_repeating_tentacle_rape_party")
     self:CancelScheduledEvent("bwcthundarkglare")
     self:CancelScheduledEvent("bwcthungroupwarning")
     self:CancelScheduledEvent("bwcthuntarget")
@@ -265,26 +262,17 @@ function BigWigsCThun:CThunP2StartDS()
     self:CancelScheduledEvent("bwctga")
 
     if self.db.profile.tentacle then
-		--self:TriggerEvent("BigWigs_StartBar", self, "Eye Tentacles", 38+timeP2Offset, "Interface\\Icons\\Spell_Nature_CallStorm")
-		--self:ScheduleEvent("BigWigs_ShowIcon", timeP1GreenBeam-5, "Interface\\Icons\\Ability_Rogue_Sprint", 5)
-		--self:ScheduleEvent("BigWigs_Message", timeP1GreenBeam-5, L["darkglare_soon_message"], "Urgent", true, "Alarm")
-      --self:ScheduleEvent("bwcthuntentacle", "BigWigs_Message", timeP2Tentacle + timeP2Offset - 5, self.db.profile.rape and L["tentacle"] or L["norape"], "Urgent", true, "Alert")
-      --self:TriggerEvent("BigWigs_StartBar", self, self.db.profile.rape and L["barTentacle"] or L["barNoRape"], timeP2Tentacle + timeP2Offset, "Interface\\Icons\\Spell_Nature_CallStorm")
-      --self:ScheduleEvent("BigWigs_StartBar", 41, self, L["barTentacle"], 30, "Interface\\Icons\\Spell_Nature_CallStorm")
-      --self:ScheduleEvent("bwcthuntentacle2", "BigWigs_Message", 66, self.db.profile.rape and L["tentacle"] or L["norape"], "Urgent", true, "Alert")
+      self:TriggerEvent("BigWigs_StartBar", self, L["bar_tentacle_rape"], 38+timeP2Offset, "Interface\\Icons\\Spell_Nature_CallStorm")
     end
 
     if self.db.profile.giant then
-	  self:TriggerEvent("BigWigs_StartBar", self, L["barGiant"], 38+timeP2Offset, "Interface\\Icons\\Ability_EyeOfTheOwl")
-      self:TriggerEvent("BigWigs_StartBar", self, L["barTentacle"], 38+timeP2Offset, "Interface\\Icons\\Spell_Nature_CallStorm")
-      self:TriggerEvent("BigWigs_StartBar", self, L["barGiantC"], 8+timeP2Offset, "Interface\\Icons\\Spell_Nature_Earthquake")
+      self:TriggerEvent("BigWigs_StartBar", self, L["bar_giant_eye"], 38+timeP2Offset, "Interface\\Icons\\Ability_EyeOfTheOwl")
+      self:TriggerEvent("BigWigs_StartBar", self, L["bar_giant_claw"], 8+timeP2Offset, "Interface\\Icons\\Spell_Nature_Earthquake")
     end
-	
-	
 
     self:ScheduleEvent("bwcthunstarttentacles", self.StartTentacleRape, 38 + timeP2Offset, self )
-    self:ScheduleEvent("bwcthunstartgiant", self.StartGiantRape, 38+timeP2Offset, self )
-    self:ScheduleEvent("bwcthunstartgiantc", self.StartGiantCRape, 8+timeP2Offset, self )
+    self:ScheduleEvent("bwcthunstartgiant", self.StartGiantEyeRape, 38+timeP2Offset, self )
+    self:ScheduleEvent("bwcthunstartgiantc", self.StartGiantClawRape, 8+timeP2Offset, self )
     self:ScheduleRepeatingEvent("bwcthuntargetp2", self.CheckTargetP2, timeTarget, self )
   end
 
@@ -298,32 +286,30 @@ function BigWigsCThun:CThunWeakenedDS()
     self:ScheduleEvent("bwcthunweaken1", "BigWigs_Message", timeWeakened, L["invulnerable1"], "Important" )
   end
 
-  -- cancel tentacle timers
-  self:CancelScheduledEvent("bwcthuntentacle")
-  self:CancelScheduledEvent("bwcthuntentacle2")
-  self:CancelScheduledEvent("bwcthungtentacles")
-  self:CancelScheduledEvent("bwcthungctentacles")
-  self:CancelScheduledEvent("bwctea1")
-  self:CancelScheduledEvent("bwctea2")
-  self:CancelScheduledEvent("bwctgea")
-  self:CancelScheduledEvent("bwctgca")
+  -- cancel tentacle timers - OK
+  self:StopTentacleRape()
+  self:StopGiantEyeRape()
+  self:StopGiantClawRape()
 
 
-  self:TriggerEvent("BigWigs_StopBar", self, L["barTentacle"])
-  self:TriggerEvent("BigWigs_stopBar", self, L["barNoRape"])
-  self:TriggerEvent("BigWigs_StopBar", self, L["barGiant"])
-  self:TriggerEvent("BigWigs_StopBar", self, L["barGiantC"])
+  -- Schedule timers for invuln phase
+  self:ScheduleEvent("bw_restart_p2", self.RescheduleInvulnPhase, 45, self )
+end
+
+function BigWigsCThun:RescheduleInvulnPhase()
+  if self.db.profile.tentacle then
+    self:TriggerEvent("BigWigs_StartBar", self, L["bar_tentacle_rape"], 38, "Interface\\Icons\\Spell_Nature_CallStorm")
+  end
+
+  if self.db.profile.giant then
+    self:TriggerEvent("BigWigs_StartBar", self, L["bar_giant_eye"], 38, "Interface\\Icons\\Ability_EyeOfTheOwl")
+    self:TriggerEvent("BigWigs_StartBar", self, L["bar_giant_claw"], 8, "Interface\\Icons\\Spell_Nature_Earthquake")
+  end
 
 
-  self:CancelScheduledEvent("bwcthuntentacles")
-  self:ScheduleEvent("BigWigs_StartBar", 45, self, L["barTentacle"], 5, "Interface\\Icons\\Spell_Nature_CallStorm")
-  self:ScheduleEvent("BigWigs_StartBar", 45, self, L["barGiantC"], 10, "Interface\\Icons\\Spell_Nature_Earthquake")
-  self:ScheduleEvent("BigWigs_StartBar", 45, self, L["barGiant"], 40, "Interface\\Icons\\Ability_EyeOfTheOwl")
-  self:ScheduleEvent("BigWigs_StartBar", 50, self, L["barTentacle"], 30, "Interface\\Icons\\Spell_Nature_CallStorm")
-  self:ScheduleEvent("BigWigs_StartBar", 55, self, L["barGiantC"], 60, "Interface\\Icons\\Spell_Nature_Earthquake")
-  self:ScheduleEvent("bwcthunstarttentacles", self.StartTentacleRape, timeReschedule, self )
-  --self:ScheduleEvent("bwcthunstartgiant", self.StartGiantCRape, timeReschedule + 5, self )
-  --self:ScheduleEvent("bwcthunstartgiantc", self.StartGiantRape, timeReschedule + 35, self )
+  self:ScheduleEvent("bwcthunstarttentacles", self.StartTentacleRape, 38, self )
+  self:ScheduleEvent("bwcthunstartgiant", self.StartGiantEyeRape, 38, self )
+  self:ScheduleEvent("bwcthunstartgiantc", self.StartGiantClawRape, 8, self )
 end
 
 -----------------------
@@ -332,17 +318,32 @@ end
 
 function BigWigsCThun:StartTentacleRape()
   self:TentacleRape()
-  self:ScheduleRepeatingEvent("bwcthuntentacles", self.TentacleRape, tentacletime, self )
+  self:ScheduleRepeatingEvent("bw_repeating_tentacle_rape_party", self.TentacleRape, tentacletime, self )
 end
 
-function BigWigsCThun:StartGiantRape()
+function BigWigsCThun:StopTentacleRape()
+  self:CancelScheduledEvent("bw_repeating_tentacle_rape_party")
+  self:TriggerEvent("BigWigs_StopBar", self, L["bar_tentacle_rape"])
+end
+
+function BigWigsCThun:StartGiantEyeRape()
   self:GTentacleRape()
-  self:ScheduleRepeatingEvent("bwcthungtentacles", self.GTentacleRape, 60, self )
+  self:ScheduleRepeatingEvent("bw_repeating_giant_eye", self.GTentacleRape, 60, self )
 end
 
-function BigWigsCThun:StartGiantCRape()
+function BigWigsCThun:StopGiantEyeRape()
+  self:CancelScheduledEvent("bw_repeating_giant_eye")
+  self:TriggerEvent("BigWigs_StopBar", self, L["bar_giant_eye"])
+end
+
+function BigWigsCThun:StartGiantClawRape()
   self:GCTentacleRape()
-  self:ScheduleRepeatingEvent("bwcthungctentacles", self.GCTentacleRape, 60, self )
+  self:ScheduleRepeatingEvent("bw_repeating_giant_claw", self.GCTentacleRape, 60, self )
+end
+
+function BigWigsCThun:StopGiantClawRape()
+  self:CancelScheduledEvent("bw_repeating_giant_claw")
+  self:TriggerEvent("BigWigs_StopBar", self, L["bar_giant_claw"])
 end
 
 
@@ -350,8 +351,7 @@ function BigWigsCThun:CheckTarget()
   local i
   local newtarget = nil
   if( UnitName("playertarget") == eyeofcthun ) then
-  --DEFAULT_CHAT_FRAME:AddMessage("BLA")
-  --DEFAULT_CHAT_FRAME:AddMessage(UnitName("playertargettarget"))
+    --DEFAULT_CHAT_FRAME:AddMessage(UnitName("playertargettarget"))
     newtarget = UnitName("playertargettarget")
   else
     for i = 1, GetNumRaidMembers(), 1 do
@@ -406,7 +406,7 @@ end
 function BigWigsCThun:GTentacleRape()
   if phase2started then
     if self.db.profile.giant then
-      self:TriggerEvent("BigWigs_StartBar", self, L["barGiant"], timeP2ETentacle, "Interface\\Icons\\Ability_EyeOfTheOwl")
+      self:TriggerEvent("BigWigs_StartBar", self, L["bar_giant_eye"], timeP2ETentacle, "Interface\\Icons\\Ability_EyeOfTheOwl")
 
     end
   end
@@ -415,7 +415,7 @@ end
 function BigWigsCThun:GCTentacleRape()
   if phase2started then
     if self.db.profile.giant then
-      self:TriggerEvent("BigWigs_StartBar", self, L["barGiantC"], timeP2CTentacle, "Interface\\Icons\\Spell_Nature_Earthquake")
+      self:TriggerEvent("BigWigs_StartBar", self, L["bar_giant_claw"], timeP2CTentacle, "Interface\\Icons\\Spell_Nature_Earthquake")
 
     end
   end
@@ -423,7 +423,7 @@ end
 
 function BigWigsCThun:TentacleRape()
   if self.db.profile.tentacle then
-    self:TriggerEvent("BigWigs_StartBar", self, self.db.profile.rape and L["barTentacle"] or L["barNoRape"], tentacletime, "Interface\\Icons\\Spell_Nature_CallStorm")
+    self:TriggerEvent("BigWigs_StartBar", self, self.db.profile.rape and L["bar_tentacle_rape"], tentacletime, "Interface\\Icons\\Spell_Nature_CallStorm")
     self:ScheduleEvent("bwcthuntentacle", "BigWigs_Message", tentacletime - 5, self.db.profile.rape and L["tentacle"] or L["norape"], "Urgent", true, "Alert")
   end
 end
