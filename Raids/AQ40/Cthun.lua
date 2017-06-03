@@ -404,20 +404,14 @@ function BigWigsCThun:GroupWarning()
 end
 
 function BigWigsCThun:GTentacleRape()
-  if phase2started then
-    if self.db.profile.giant then
-      self:TriggerEvent("BigWigs_StartBar", self, L["bar_giant_eye"], timeP2ETentacle, "Interface\\Icons\\Ability_EyeOfTheOwl")
-
-    end
+  if self.db.profile.giant then
+    self:TriggerEvent("BigWigs_StartBar", self, L["bar_giant_eye"], timeP2ETentacle, "Interface\\Icons\\Ability_EyeOfTheOwl")
   end
 end
 
 function BigWigsCThun:GCTentacleRape()
-  if phase2started then
-    if self.db.profile.giant then
-      self:TriggerEvent("BigWigs_StartBar", self, L["bar_giant_claw"], timeP2CTentacle, "Interface\\Icons\\Spell_Nature_Earthquake")
-
-    end
+  if self.db.profile.giant then
+    self:TriggerEvent("BigWigs_StartBar", self, L["bar_giant_claw"], timeP2CTentacle, "Interface\\Icons\\Spell_Nature_Earthquake")
   end
 end
 
