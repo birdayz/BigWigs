@@ -201,7 +201,7 @@ function BigWigsCThun:DelayedEyeBeamCheck()
     --TODO self:Icon(name)
     if name == UnitName("player") then
       self:TriggerEvent("BigWigs_ShowIcon", "Interface\\Icons\\Ability_creature_poison_05", 2 - targetCheckDelay)
-      self:TriggerEvent("BigWigs_Message", "Eye Beam, on YOU!", "Urgent", true, "Alarm", 2 - targetCheckDelay)
+      self:TriggerEvent("BigWigs_Message", "Eye Beam, on YOU!", "Urgent", true, "Alarm")
     end
   end
   self:TriggerEvent("BigWigs_StartBar", self, string.format(L["eye_cast_bar_on"], name), 2 - targetCheckDelay, "Interface\\Icons\\Spell_Nature_CallStorm")
