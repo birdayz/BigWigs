@@ -388,7 +388,7 @@ end
 function BigWigsCThun:CheckTargetP2()
   local i
   local newtarget = nil
-  
+
   if( UnitName("playertarget") == gianteye ) then
     newtarget = UnitName("playertargettarget")
   else
