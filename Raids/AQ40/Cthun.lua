@@ -121,6 +121,7 @@ BigWigsCThun.revision = tonumber(string.sub("$Revision: 15989 $", 12, -3))
 
 function BigWigsCThun:OnEnable()
   self.started = nil
+  self.tentaclesKilled = 0
   target = nil
   cthunstarted = nil
   firstWarning = nil
@@ -163,13 +164,16 @@ function BigWigsCThun:CHAT_MSG_SPELL_CREATURE_VS_PARTY_DAMAGE( arg1 )
 end
 
 function BigWigsCThun:CHAT_MSG_COMBAT_HOSTILE_DEATH(msg)
-  if ((msg == string.format(UNITDIESOTHER, eyeofcthun)) or string.find(msg, "You have slain Eye of C")) then
+  if ((msg == string.format(UNITDIESOTHER, eyeofcthun))) then
     self:TriggerEvent("BigWigs_SendSync", "CThunP2StartDS")
   elseif (msg == string.format(UNITDIESOTHER, gianteye)) then
     self:TriggerEvent("BigWigs_SendSync", "CThunGEdownDS")
   elseif (msg == string.format(UNITDIESOTHER, cthun)) then
     if self.db.profile.bosskill then self:TriggerEvent("BigWigs_Message", string.format(AceLibrary("AceLocale-2.2"):new("BigWigs")["%s has been defeated"], cthun), "Bosskill", nil, "Victory") end
     self.core:ToggleModuleActive(self, false)
+  elseif (msg == string.format(UNITDIESOTHER, "Eye Tentacle")) then
+    self.tentaclesKilled = self.tentaclesKilled + 1
+    self:TriggerEvent("BigWigs_SetCounterBar", self, "Eye Tentacles alive", self.tentaclesKilled)
   end
 end
 
@@ -209,8 +213,6 @@ end
 function BigWigsCThun:CThunStart()
   if not cthunstarted then
     cthunstarted = true
-
-    self:TriggerEvent("BigWigs_Message", L["startwarn"], "Attention")
 
     if self.db.profile.tentacle then
       self:TriggerEvent("BigWigs_StartBar", self, self.db.profile.rape and L["bar_tentacle_rape"], timeP1TentacleStart, "Interface\\Icons\\Spell_Nature_CallStorm")
@@ -322,6 +324,7 @@ function BigWigsCThun:StartTentacleRape()
 end
 
 function BigWigsCThun:StopTentacleRape()
+  self:TriggerEvent("BigWigs_StopCounterBar", self, "Eye Tentacles alive")
   self:CancelScheduledEvent("bw_repeating_tentacle_rape_party")
   self:TriggerEvent("BigWigs_StopBar", self, L["bar_tentacle_rape"])
 end
@@ -351,7 +354,6 @@ function BigWigsCThun:CheckTarget()
   local i
   local newtarget = nil
   if( UnitName("playertarget") == eyeofcthun ) then
-    --DEFAULT_CHAT_FRAME:AddMessage(UnitName("playertargettarget"))
     newtarget = UnitName("playertargettarget")
   else
     for i = 1, GetNumRaidMembers(), 1 do
@@ -417,6 +419,11 @@ end
 
 function BigWigsCThun:TentacleRape()
   if self.db.profile.tentacle then
+
+    self.tentaclesKilled = 0
+    self:TriggerEvent("BigWigs_StartCounterBar", self, "Eye Tentacles alive", 8, "Interface\\Icons\\Spell_Nature_CallStorm")
+    self:TriggerEvent("BigWigs_SetCounterBar", self, "Eye Tentacles alive", 0)
+
     self:TriggerEvent("BigWigs_StartBar", self, self.db.profile.rape and L["bar_tentacle_rape"], tentacletime, "Interface\\Icons\\Spell_Nature_CallStorm")
     self:ScheduleEvent("bwcthuntentacle", "BigWigs_Message", tentacletime - 5, self.db.profile.rape and L["tentacle"] or L["norape"], "Urgent", true, "Alert")
   end
