@@ -214,10 +214,10 @@ BigWigsRange.consoleOptions = {
       order = -1,
       desc = L["Resets all ranges to defaults."],
       func = function()
-        --~~ 				SetCVar("CombatLogRangeParty", 50)
-        --~~ 				SetCVar("CombatLogRangePartyPet", 50)
-        --~~ 				SetCVar("CombatLogRangeFriendlyPlayers", 50)
-        --~~ 				SetCVar("CombatLogRangeFriendlyPlayersPets", 50)
+        SetCVar("CombatLogRangeParty", 200)
+        SetCVar("CombatLogRangePartyPet", 200)
+        SetCVar("CombatLogRangeFriendlyPlayers", 200)
+        SetCVar("CombatLogRangeFriendlyPlayersPets", 200)
         SetCVar("CombatLogRangeCreature", 200)
         SetCVar("CombatDeathLogRange", 200)
       end,
