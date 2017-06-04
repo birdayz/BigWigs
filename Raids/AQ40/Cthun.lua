@@ -27,6 +27,7 @@ local phase2started = nil
 local firstWarning = nil
 local target = nil
 local tentacletime = timeP1Tentacle
+local targetCheckDelay = 0.2
 
 
 ----------------------------
@@ -183,14 +184,29 @@ function BigWigsCThun:CHAT_MSG_SPELL_CREATURE_VS_CREATURE_DAMAGE(msg)
     self:TriggerEvent("BigWigs_SendSync", "CThunStart")
   end
   if string.find(msg, "begins to cast Eye") then
-    --self:CheckTarget()
-    --if target ~= nil then
-    --	self:TriggerEvent("BigWigs_StartBar", self, string.format(L["eye_cast_bar_on"], target), 2, "Interface\\Icons\\Spell_Nature_CallStorm")
-    --else
-    self:TriggerEvent("BigWigs_StartBar", self, string.format(L["eye_cast_bar_on"], "<unknown>"), 2, "Interface\\Icons\\Spell_Nature_CallStorm")
-    --end
-
+    self:ScheduleEvent("CThunDelayedEyeBeamCheck", self.DelayedEyeBeamCheck, targetCheckDelay, self) -- has to be done delayed since the target change is delayed
   end
+end
+
+function BigWigsCThun:DelayedEyeBeamCheck()
+  local name = "<unknown>"
+  if phase2started then
+    self:CheckTargetP2()
+  else
+    self:CheckTarget()
+  end
+
+  if target then
+    name = target
+    --TODO self:Icon(name)
+    if name == UnitName("player") then
+      self:TriggerEvent("BigWigs_ShowIcon", "Interface\\Icons\\Ability_creature_poison_05", 2 - targetCheckDelay)
+      self:TriggerEvent("BigWigs_Message", "Eye Beam, on YOU!", "Urgent", true, "Alarm", 2 - targetCheckDelay)
+    end
+  end
+  self:TriggerEvent("BigWigs_StartBar", self, string.format(L["eye_cast_bar_on"], name), 2 - targetCheckDelay, "Interface\\Icons\\Spell_Nature_CallStorm")
+
+  --self:Bar(string.format(L["eyebeam"], name), timer.eyeBeam - 0.1, icon.giantEye, true, "green")
 end
 
 function BigWigsCThun:BigWigs_RecvSync(sync, rest, nick)
@@ -234,6 +250,7 @@ function BigWigsCThun:CThunP2StartDS()
   if not phase2started then
     phase2started = true
     tentacletime = timeP2Tentacle
+    target = nil
 
     self:StopTentacleRape() -- stop p1 tentacle rape
     self:CancelScheduledEvent("bw_repeating_tentacle_rape_partystart")
@@ -275,7 +292,7 @@ function BigWigsCThun:CThunP2StartDS()
     self:ScheduleEvent("bwcthunstarttentacles", self.StartTentacleRape, 38 + timeP2Offset, self )
     self:ScheduleEvent("bwcthunstartgiant", self.StartGiantEyeRape, 38+timeP2Offset, self )
     self:ScheduleEvent("bwcthunstartgiantc", self.StartGiantClawRape, 8+timeP2Offset, self )
-    self:ScheduleRepeatingEvent("bwcthuntargetp2", self.CheckTargetP2, timeTarget, self )
+    --self:ScheduleRepeatingEvent("bwcthuntargetp2", self.CheckTargetP2, timeTarget, self )
   end
 
 end
@@ -371,6 +388,7 @@ end
 function BigWigsCThun:CheckTargetP2()
   local i
   local newtarget = nil
+  
   if( UnitName("playertarget") == gianteye ) then
     newtarget = UnitName("playertargettarget")
   else
@@ -386,24 +404,6 @@ function BigWigsCThun:CheckTargetP2()
   end
 end
 
-function BigWigsCThun:GroupWarning()
-  if target then
-    local i, name, group
-    for i = 1, GetNumRaidMembers(), 1 do
-      name, _, group, _, _, _, _, _ = GetRaidRosterInfo(i)
-      if name == target then break end
-    end
-    if self.db.profile.group then
-      self:TriggerEvent("BigWigs_Message", string.format( L["groupwarning"], group, target), "Important", true, "Alarm")
-      self:TriggerEvent("BigWigs_SendTell", target, L["glarewarning"])
-    end
-  end
-  if firstWarning then
-    self:CancelScheduledEvent("bwcthungroupwarning")
-    self:ScheduleRepeatingEvent("bwcthungroupwarning", self.GroupWarning, timeP1Glare, self )
-    firstWarning = nil
-  end
-end
 
 function BigWigsCThun:GTentacleRape()
   if self.db.profile.giant then
@@ -432,6 +432,25 @@ end
 function BigWigsCThun:StartDarkGlarePhase()
   self:TriggerEvent("BigWigs_StartBar", self, L["barGlare"], timeP1GlareDuration, "Interface\\Icons\\Spell_Nature_CallStorm")
   self:ScheduleEvent("bwstartgreenbeamphase", self.StartGreenBeamPhase, timeP1GlareDuration, self )
+end
+
+function BigWigsCThun:GroupWarning()
+  if target then
+    local i, name, group
+    for i = 1, GetNumRaidMembers(), 1 do
+      name, _, group, _, _, _, _, _ = GetRaidRosterInfo(i)
+      if name == target then break end
+    end
+    if self.db.profile.group then
+      self:TriggerEvent("BigWigs_Message", string.format( L["groupwarning"], group, target), "Important", true, "Alarm")
+      self:TriggerEvent("BigWigs_SendTell", target, L["glarewarning"])
+    end
+  end
+  if firstWarning then
+    self:CancelScheduledEvent("bwcthungroupwarning")
+    self:ScheduleRepeatingEvent("bwcthungroupwarning", self.GroupWarning, timeP1Glare, self )
+    firstWarning = nil
+  end
 end
 
 function BigWigsCThun:WarnDarkGlare()
