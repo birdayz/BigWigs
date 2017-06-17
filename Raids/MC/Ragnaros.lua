@@ -117,7 +117,6 @@ function BigWigsRagnaros:OnEnable()
   self.started = nil
   self.sonsdead = 0
 
-  self:RegisterEvent("PLAYER_REGEN_DISABLED", "CheckForEngage")
   self:RegisterEvent("CHAT_MSG_MONSTER_YELL")
   self:RegisterEvent("CHAT_MSG_COMBAT_HOSTILE_DEATH")
   self:RegisterEvent("BigWigs_RecvSync")
@@ -135,11 +134,7 @@ function BigWigsRagnaros:CHAT_MSG_COMBAT_HOSTILE_DEATH(msg)
 end
 
 function BigWigsRagnaros:BigWigs_RecvSync(sync, rest, nick)
-  if not self.started and sync == "BossEngaged" and rest == self.bossSync then
-    self:StartFight()
-    if self.db.profile.aoeknock then
-      self:TriggerEvent("BigWigs_SendSync", "RagnarosKnockback")
-    end
+  if not self.started and sync == "BossEngaged" then
   elseif sync == "RagnarosSonDeadX" and rest and rest ~= "" then
     rest = tonumber(rest)
     if rest <= 8 and self.sonsdead < rest then
@@ -170,11 +165,21 @@ function BigWigsRagnaros:CHAT_MSG_MONSTER_YELL(msg)
   elseif string.find(msg, L["submerge_trigger"]) then
     self:Submerge()
   elseif string.find(msg, L["engage_trigger"]) then
-    self:Emerge()
+    DEFAULT_CHAT_FRAME:AddMessage("trig")
+    self:ScheduleEvent("bwragnarosengage", self.HasEngaged, 3000, self )
   elseif string.find(msg,L["engage_soon_trigger"]) then
     self:TriggerEvent("BigWigs_StartBar", self, "Combat", 78, "Interface\\Icons\\Inv_Hammer_Unique_Sulfuras")
   elseif string.find(msg,L["hammer_trigger"]) then
     self:TriggerEvent("BigWigs_StartBar", self, "Hammer of Ragnaros", 25, "Interface\\Icons\\Spell_Fire_Incinerate")
+  end
+end
+
+function BigWigsRagnaros:HasEngaged()
+  DEFAULT_CHAT_FRAME:AddMessage("has engaged")
+  self:StartFight()
+  self:Emerge()
+  if self.db.profile.aoeknock then
+    self:TriggerEvent("BigWigs_SendSync", "RagnarosKnockback")
   end
 end
 
